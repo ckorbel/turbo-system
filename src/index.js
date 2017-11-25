@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import PropTypes from 'prop-types';
+import Draggable from 'react-draggable';
 
 
 class Note extends React.Component {
@@ -13,8 +14,31 @@ class Note extends React.Component {
     };
     this.edit = this.edit.bind(this);
     this.save = this.save.bind(this);
+    this.randomBetween = this.randomBetween.bind(this);
+    this.componentWillMount = this.componentWillMount.bind(this);
   }
 
+  componentWillMount() {
+    this.style = {
+      right: this.randomBetween(0, window.innerWidth - 150, 'px'),
+      top: this.randomBetween(0, window.innerHeight - 150, 'px')
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.state.editing) {
+      this.refs.newText.focus();
+      this.refs.newText.select()
+    }
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return this.props.children !== nextProps.children || this.state !== nextState
+  }
+
+  randomBetween(x, y, s) {
+    return(x + Math.ceil(Math.random() * (y-x))) + s
+  }
 
   edit() {
     this.setState({editing: true})
@@ -31,8 +55,11 @@ class Note extends React.Component {
 
   renderForm() {
     return (
-      <div className="note">
-        <textarea ref="newText"></textarea>
+      <div className="note"
+        style={this.style}>
+        <textarea ref="newText"
+        defaultValue={this.props.children}>
+        </textarea>
         <button onClick={this.save}>SAVE</button>
       </div>
     );
@@ -40,7 +67,8 @@ class Note extends React.Component {
 
   renderDisplay() {
     return (
-      <div className="note">
+      <div className="note"
+        style={this.style}>
         <p>{this.props.children}</p>
         <span>
           <button onClick={this.edit}>EDIT</button>
@@ -51,7 +79,12 @@ class Note extends React.Component {
   }
 
   render() {
-    return (this.state.editing) ? this.renderForm() : this.renderDisplay();
+    return ( 
+    <Draggable>
+      {(this.state.editing) ? this.renderForm() : this.renderDisplay()}
+    </Draggable>
+      );
+      
     }
 }
 
@@ -67,6 +100,9 @@ class Board extends React.Component {
     this.eachNote = this.eachNote.bind(this);
     this.nextId = this.nextId.bind(this);
     this.add = this.add.bind(this);
+  }
+
+  componentWillMount() {
   }
 
   nextId() {
